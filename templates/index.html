@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Prediction System | AI Health Dashboard</title>
+    
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Background blur spots for startup dashboard vibe -->
+    <div class="blur-blob blob-1"></div>
+    <div class="blur-blob blob-2"></div>
+    <div class="blur-blob blob-3"></div>
+
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="logo-area">
+                <i data-lucide="heart-pulse" class="brand-icon"></i>
+                <span class="brand-name">CardioAI</span>
+            </div>
+            <h1 class="main-title">Heart Disease Prediction System</h1>
+            <p class="subtitle">Enter patient metabolic & cardiovascular metrics to assess risk levels using our calibrated ML model.</p>
+        </header>
+
+        <!-- Main Card Component -->
+        <main class="prediction-card">
+            <div class="card-header">
+                <h2>Diagnostic Evaluation Form</h2>
+                <p>All fields are required. Please input precise clinical readings.</p>
+            </div>
+            
+            <form id="predictionForm" class="patient-form">
+                <div class="form-grid">
+                    
+                    <!-- Age Input -->
+                    <div class="form-group">
+                        <label for="age" class="form-label">
+                            <i data-lucide="calendar" class="label-icon"></i>
+                            Patient Age (Years)
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="age" name="age" min="1" max="120" placeholder="e.g. 45" required>
+                        </div>
+                    </div>
+
+                    <!-- Sex Input -->
+                    <div class="form-group">
+                        <label for="sex" class="form-label">
+                            <i data-lucide="user" class="label-icon"></i>
+                            Biological Sex
+                        </label>
+                        <div class="input-wrapper">
+                            <select id="sex" name="sex" required>
+                                <option value="" disabled selected>Select Sex</option>
+                                <option value="1">Male</option>
+                                <option value="0">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Chest Pain Input -->
+                    <div class="form-group">
+                        <label for="cp" class="form-label">
+                            <i data-lucide="activity" class="label-icon"></i>
+                            Chest Pain Type
+                        </label>
+                        <div class="input-wrapper">
+                            <select id="cp" name="cp" required>
+                                <option value="" disabled selected>Select Type</option>
+                                <option value="0">Typical Angina (0)</option>
+                                <option value="1">Atypical Angina (1)</option>
+                                <option value="2">Non-Anginal Pain (2)</option>
+                                <option value="3">Asymptomatic (3)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Blood Pressure Input -->
+                    <div class="form-group">
+                        <label for="trestbps" class="form-label">
+                            <i data-lucide="gauge" class="label-icon"></i>
+                            Resting Blood Pressure (mmHg)
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="trestbps" name="trestbps" min="50" max="250" placeholder="e.g. 120" required>
+                        </div>
+                    </div>
+
+                    <!-- Cholesterol Input -->
+                    <div class="form-group">
+                        <label for="chol" class="form-label">
+                            <i data-lucide="droplet" class="label-icon"></i>
+                            Serum Cholesterol (mg/dl)
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="chol" name="chol" min="80" max="600" placeholder="e.g. 210" required>
+                        </div>
+                    </div>
+
+                    <!-- Max Heart Rate Input -->
+                    <div class="form-group">
+                        <label for="thalach" class="form-label">
+                            <i data-lucide="heart" class="label-icon"></i>
+                            Max Heart Rate (bpm)
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="thalach" name="thalach" min="50" max="220" placeholder="e.g. 150" required>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Submit Action Button -->
+                <button type="submit" class="submit-btn" id="predictBtn">
+                    <span class="btn-text">Assess Risk Status</span>
+                    <i data-lucide="arrow-right" class="btn-icon"></i>
+                    <div class="spinner" id="btnSpinner" style="display: none;"></div>
+                </button>
+            </form>
+
+            <!-- Loading overlay or state indicator -->
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="spinner-large"></div>
+                <p>Analyzing clinical attributes with CardioAI...</p>
+            </div>
+
+            <!-- Dynamic Result Section -->
+            <div id="resultSection" class="result-section" style="display: none;">
+                <div id="resultAlert" class="result-alert">
+                    <div class="result-header-row">
+                        <div class="alert-icon-wrapper" id="alertIconWrapper">
+                            <i id="alertIcon" data-lucide="shield-check"></i>
+                        </div>
+                        <div class="alert-meta">
+                            <h3 id="resultTitle">No Risk Detected</h3>
+                            <span class="probability-badge" id="probBadge">12.5% Probability</span>
+                        </div>
+                    </div>
+                    <div class="alert-body">
+                        <p id="resultMessage">Analysis details will be displayed here.</p>
+                    </div>
+                    
+                    <!-- Recommendation details -->
+                    <div class="clinical-findings">
+                        <h4>Diagnostic Context</h4>
+                        <p>This prediction is generated based on standard Logistic Regression trained on cardiovascular parameters. Always verify findings with certified laboratory tests.</p>
+                    </div>
+                </div>
+                
+                <button type="button" class="reset-btn" id="resetBtn">
+                    <i data-lucide="refresh-cw"></i>
+                    New Assessment
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer Section -->
+        <footer class="footer">
+            <p>AI Powered Health Prediction System</p>
+            <p class="copyright">&copy; 2026 CardioAI Diagnostic Systems. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Frontend Form Submission and Interactivity script -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        const form = document.getElementById('predictionForm');
+        const predictBtn = document.getElementById('predictBtn');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const btnText = predictBtn.querySelector('.btn-text');
+        const btnIcon = predictBtn.querySelector('.btn-icon');
+        const resultSection = document.getElementById('resultSection');
+        const resultAlert = document.getElementById('resultAlert');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        const probBadge = document.getElementById('probBadge');
+        const alertIconWrapper = document.getElementById('alertIconWrapper');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Form Submission
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Disable button and show spinner
+            predictBtn.disabled = true;
+            btnText.style.opacity = '0.5';
+            btnIcon.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
+            
+            // Hide previous results
+            resultSection.style.display = 'none';
+
+            // Gather inputs
+            const payload = {
+                age: document.getElementById('age').value,
+                sex: document.getElementById('sex').value,
+                cp: document.getElementById('cp').value,
+                trestbps: document.getElementById('trestbps').value,
+                chol: document.getElementById('chol').value,
+                thalach: document.getElementById('thalach').value
+            };
+
+            // Mimic a brief loading delay for realistic professional feel (800ms)
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Display success or failure styling
+                    resultSection.style.display = 'block';
+                    resultMessage.textContent = result.message;
+                    resultTitle.textContent = result.title;
+                    probBadge.textContent = `${result.probability}% Risk Probability`;
+
+                    // Remove existing status classes
+                    resultAlert.classList.remove('alert-danger', 'alert-success');
+
+                    if (result.risk_detected) {
+                        resultAlert.classList.add('alert-danger');
+                        alertIconWrapper.innerHTML = '<i data-lucide="alert-triangle"></i>';
+                        alertIconWrapper.className = 'alert-icon-wrapper danger-bg';
+                    } else {
+                        resultAlert.classList.add('alert-success');
+                        alertIconWrapper.innerHTML = '<i data-lucide="shield-check"></i>';
+                        alertIconWrapper.className = 'alert-icon-wrapper success-bg';
+                    }
+
+                    // Re-render new dynamic icons inside the result
+                    lucide.createIcons();
+                    
+                    // Smooth scroll to result section
+                    resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                } else {
+                    alert('Diagnostic Error: ' + (result.error || 'Unknown error occurred.'));
+                }
+
+            } catch (error) {
+                console.error('Network Error:', error);
+                alert('Connection failure. Could not connect to prediction server.');
+            } finally {
+                // Restore button state
+                predictBtn.disabled = false;
+                btnText.style.opacity = '1';
+                btnIcon.style.display = 'inline-block';
+                btnSpinner.style.display = 'none';
+            }
+        });
+
+        // Reset button handler
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            resultSection.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
